@@ -1,15 +1,9 @@
 [build]
-  command = "npm run build"
+  command = "yarn build"
   publish = "dist"
 
+[build.environment]
+  HUGO_VERSION = "0.29"
+
 [context.deploy-preview]
-  command = "npm run build-preview"
-  
-[context.production.environment]
-  HUGO_VERSION = "0.29"
-
-[context.deploy-preview.environment]
-  HUGO_VERSION = "0.29"
-
-[context.branch-deploy.environment]
-  HUGO_VERSION = "0.29"  
+  command = "yarn build-preview"
