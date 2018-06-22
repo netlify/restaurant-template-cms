@@ -1,8 +1,9 @@
+import Siema from "./siema.min.js";
 // JS Goes here - ES6 supported
 const mySiema = new Siema({
-  selector: '.gallery-carousel',
+  selector: ".gallery-carousel",
   duration: 200,
-  easing: 'ease',
+  easing: "ease",
   perPage: 1,
   startIndex: 0,
   draggable: true,
@@ -10,5 +11,5 @@ const mySiema = new Siema({
   loop: true
 });
 
-document.querySelector('.prev').addEventListener('click', () => mySiema.prev());
-document.querySelector('.next').addEventListener('click', () => mySiema.next());
+document.querySelector(".prev").addEventListener("click", () => mySiema.prev());
+document.querySelector(".next").addEventListener("click", () => mySiema.next());
