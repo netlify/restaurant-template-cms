@@ -1,33 +1,60 @@
 import gulp from "gulp";
-import cp from "child_process";
+import { spawn } from "child_process";
+import hugoBin from "hugo-bin";
 import gutil from "gulp-util";
+import flatten from "gulp-flatten";
 import postcss from "gulp-postcss";
 import cssImport from "postcss-import";
-import nestedcss from "postcss-nested";
+import cssnext from "postcss-cssnext";
+import cssNested from "postcss-nested";
 import BrowserSync from "browser-sync";
 import webpack from "webpack";
 import webpackConfig from "./webpack.conf";
 
 const browserSync = BrowserSync.create();
-const hugoBin = "hugo";
-const defaultArgs = ["-d", "../dist", "-s", "site", "-v"];
 
+// Hugo arguments
+const hugoArgsDefault = ["-d", "../dist", "-s", "site", "-v"];
+const hugoArgsPreview = ["--buildDrafts", "--buildFuture"];
+
+// Development tasks
 gulp.task("hugo", cb => buildSite(cb));
-gulp.task("hugo-preview", cb =>
-  buildSite(cb, ["--buildDrafts", "--buildFuture"])
+gulp.task("hugo-preview", cb => buildSite(cb, hugoArgsPreview));
+
+// Run server tasks
+gulp.task("server", ["hugo", "css", "js", "fonts", "videos", "images"], cb =>
+  runServer(cb)
+);
+gulp.task(
+  "server-preview",
+  ["hugo-preview", "css", "js", "fonts", "videos", "images"],
+  cb => runServer(cb)
 );
 
-gulp.task("build", ["css", "js", "videos", "images", "hugo"]);
-gulp.task("build-preview", ["css", "js", "videos", "images", "hugo-preview"]);
+// Build/production tasks
+gulp.task("build", ["css", "js", "fonts", "videos", "images"], cb =>
+  buildSite(cb, [], "production")
+);
+gulp.task("build-preview", ["css", "js", "fonts", "videos", "images"], cb =>
+  buildSite(cb, hugoArgsPreview, "production")
+);
 
+// Compile CSS with PostCSS
 gulp.task("css", () =>
   gulp
     .src("./src/css/*.css")
-    .pipe(postcss([cssImport({ from: "./src/css/main.css" }), nestedcss()]))
+    .pipe(
+      postcss([
+        cssImport({ from: "./src/css/main.css" }),
+        cssNested(),
+        cssnext()
+      ])
+    )
     .pipe(gulp.dest("./dist/css"))
     .pipe(browserSync.stream())
 );
 
+// Compile Javascript
 gulp.task("js", cb => {
   const myConfig = Object.assign({}, webpackConfig);
 
@@ -43,18 +70,18 @@ gulp.task("js", cb => {
     browserSync.reload();
     cb();
   });
-
-  gulp
-    .src([
-      "./src/js/**/*",
-      "!./src/js/app.js",
-      "!./src/js/cms.js",
-      "!./src/js/cms/**/*"
-    ])
-    .pipe(gulp.dest("./dist/js"))
-    .pipe(browserSync.stream());
 });
 
+// Move all fonts in a flattened directory
+gulp.task("fonts", () =>
+  gulp
+    .src("./src/fonts/**/*")
+    .pipe(flatten())
+    .pipe(gulp.dest("./dist/fonts"))
+    .pipe(browserSync.stream())
+);
+
+// Move all videos in a flattened directory
 gulp.task("videos", () =>
   gulp
     .src("./src/videos/**/*")
@@ -62,6 +89,7 @@ gulp.task("videos", () =>
     .pipe(browserSync.stream())
 );
 
+// Move all images in a flattened directory
 gulp.task("images", () =>
   gulp
     .src("./src/img/**/*")
@@ -69,24 +97,30 @@ gulp.task("images", () =>
     .pipe(browserSync.stream())
 );
 
-gulp.task("server", ["hugo", "css", "js", "videos", "images"], () => {
+// Development server with browsersync
+function runServer() {
   browserSync.init({
     server: {
       baseDir: "./dist"
-    },
-    notify: false
+    }
   });
   gulp.watch("./src/js/**/*.js", ["js"]);
   gulp.watch("./src/css/**/*.css", ["css"]);
+  gulp.watch("./src/fonts/**/*", ["fonts"]);
   gulp.watch("./src/img/**/*", ["images"]);
   gulp.watch("./src/videos/**/*", ["videos"]);
   gulp.watch("./site/**/*", ["hugo"]);
-});
+}
 
-function buildSite(cb, options) {
-  const args = options ? defaultArgs.concat(options) : defaultArgs;
+/**
+ * Run hugo and build the site
+ */
+function buildSite(cb, options, environment = "development") {
+  const args = options ? hugoArgsDefault.concat(options) : hugoArgsDefault;
 
-  return cp.spawn(hugoBin, args, { stdio: "inherit" }).on("close", code => {
+  process.env.NODE_ENV = environment;
+
+  return spawn(hugoBin, args, { stdio: "inherit" }).on("close", code => {
     if (code === 0) {
       browserSync.reload();
       cb();
