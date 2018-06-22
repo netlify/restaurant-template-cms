@@ -1,4 +1,4 @@
-# Victor Hugo CMS Template
+# Example site for restaurants built with Victor Hugo
 <!-- Markdown snippet -->
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/netlify/restaurant-template-cms&stack=cms)
 
@@ -12,7 +12,6 @@ To install and run the example site locally, here’s what you’ll need:
 
 * [git](https://git-scm.com)
 * [NodeJS](nodejs.org) 8 or greater
-* [yarn](yarnpkg.com)
 * [Hugo](https://gohugo.io/overview/installing/)
 
 ## Usage
@@ -20,8 +19,8 @@ To install and run the example site locally, here’s what you’ll need:
 Clone this repository and run:
 
 ```bash
-yarn install
-yarn start
+npm install
+npm run start
 ```
 
 Then visit http://localhost:3000/ - BrowserSync will automatically reload CSS or
@@ -30,7 +29,7 @@ refresh the page when stylesheets or content changes.
 To build your static output to the `/dist` folder, use:
 
 ```bash
-yarn build
+npm run build
 ```
 
 ## License
